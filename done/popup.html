@@ -1,0 +1,363 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>LinkSaver</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap" rel="stylesheet" />
+    <style>
+      * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+        font-family: "Inter", sans-serif;
+      }
+
+      body {
+        width: 380px;
+        padding: 16px;
+        background: #ffffff;
+      }
+
+      .app-header {
+        display: flex;
+        align-items: center;
+        margin-bottom: 20px;
+        padding-bottom: 12px;
+        position: relative;
+      }
+
+      .app-header::after {
+        content: "";
+        position: absolute;
+        bottom: 0;
+        left: 0;
+        right: 0;
+        height: 1px;
+        background: linear-gradient(
+          90deg,
+          rgba(7, 254, 172, 0.822) 0%,
+          #2563eb 50%,
+          rgba(37, 99, 235, 0.1) 100%
+        );
+        animation: underlineAppear 1.5s ease-out forwards;
+      }
+
+      @keyframes underlineAppear {
+        0% {
+          opacity: 0;
+          transform: scaleX(0);
+        }
+        100% {
+          opacity: 1;
+          transform: scaleX(1);
+        }
+      }
+
+      .underline-animate {
+        position: absolute;
+        bottom: 0;
+        left: 0;
+        right: 0;
+        height: 2px;
+        background: linear-gradient(
+          90deg,
+          transparent 0%,
+          #07feac 50%,
+          transparent 100%
+        );
+        opacity: 0;
+        transform: scaleX(0);
+        transform-origin: center;
+      }
+
+      .underline-animate.active {
+        animation: underlineExpand 0.6s cubic-bezier(0.4, 0, 0.2, 1) forwards;
+      }
+
+      @keyframes underlineExpand {
+        0% {
+          opacity: 1;
+          transform: scaleX(0);
+          background-position: 50% 0;
+        }
+        50% {
+          opacity: 1;
+          transform: scaleX(1);
+        }
+        100% {
+          opacity: 0;
+          transform: scaleX(1);
+          background-position: 100% 0;
+        }
+      }
+
+      .app-logo {
+        width: 32px;
+        height: 32px;
+        margin-right: 12px;
+        margin-left: 10px;
+      }
+
+      .app-title {
+        font-size: 18px;
+        font-weight: 600;
+        color: #111827;
+      }
+
+      .input-container {
+        background: #f9fafb;
+        padding: 16px;
+        border-radius: 8px;
+        margin-bottom: 16px;
+      }
+
+      .input-group {
+        margin-bottom: 12px;
+      }
+
+      .input-group:last-child {
+        margin-bottom: 0;
+      }
+
+      .input-group label {
+        display: block;
+        font-size: 13px;
+        font-weight: 500;
+        color: #374151;
+        margin-bottom: 6px;
+      }
+
+      .input-group input {
+        width: 100%;
+        padding: 8px 12px;
+        border: 1px solid #d1d5db;
+        border-radius: 6px;
+        font-size: 14px;
+        transition: all 0.2s;
+      }
+
+      .input-group input:focus {
+        outline: none;
+        border-color: #2563eb;
+        box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1);
+      }
+
+      .save-button {
+        width: 100%;
+        padding: 10px;
+        background: #2563eb;
+        color: white;
+        border: none;
+        border-radius: 6px;
+        font-weight: 500;
+        font-size: 14px;
+        cursor: pointer;
+        transition: background 0.2s;
+      }
+
+      .save-button:hover {
+        background: #1d4ed8;
+      }
+
+      .links-container {
+        max-height: 400px;
+        overflow-y: auto;
+        padding-right: 4px;
+        scrollbar-width: thin;
+        scrollbar-color: #2563eb #f1f5f9;
+        scroll-behavior: smooth;
+      }
+
+      /* Modern Floating Scrollbar */
+      .links-container::-webkit-scrollbar {
+        width: 8px;
+        height: 8px;
+      }
+
+      .links-container::-webkit-scrollbar-track {
+        background: transparent;
+        border-radius: 10px;
+        margin: 4px;
+      }
+
+      .links-container::-webkit-scrollbar-thumb {
+        background: rgba(37, 99, 235, 0.5);
+        border-radius: 10px;
+        border: 2px solid transparent;
+        background-clip: padding-box;
+        transition: all 0.3s ease;
+      }
+
+      .links-container::-webkit-scrollbar-thumb:hover {
+        background: rgba(37, 99, 235, 0.7);
+        transform: scaleX(1.1);
+      }
+
+      .links-container::-webkit-scrollbar-thumb:active {
+        background: #2563eb;
+        transform: scaleX(1.05);
+      }
+
+      .links-container:hover::-webkit-scrollbar-thumb {
+        background: rgba(37, 99, 235, 0.6);
+      }
+
+      /* Floating scrollbar effect */
+      .links-container {
+        overflow-y: overlay;
+      }
+
+      /* Firefox support */
+      @supports (scrollbar-color: auto) {
+        .links-container {
+          scrollbar-color: #2563eb #f1f5f9;
+        }
+      }
+
+      /* Link items styles */
+      .link-item {
+        display: flex;
+        align-items: center;
+        padding: 12px;
+        border: 1px solid #e5e7eb;
+        border-radius: 8px;
+        margin-bottom: 8px;
+        transition: all 0.3s ease-out;
+        position: relative;
+        overflow: hidden;
+      }
+
+      .link-item:hover {
+        border-color: #2563eb;
+        background: #f8fafc;
+      }
+
+      .link-item.deleting {
+        opacity: 0;
+        transform: translateX(100%);
+        transition: all 0.3s ease-out;
+      }
+
+      .favicon {
+        width: 20px;
+        height: 20px;
+        margin-right: 12px;
+        border-radius: 4px;
+      }
+
+      .link-details {
+        flex: 1;
+        min-width: 0;
+      }
+
+      .link-name {
+        font-weight: 500;
+        color: #111827;
+        margin-bottom: 2px;
+        font-size: 14px;
+      }
+
+      .link-url {
+        color: #6b7280;
+        font-size: 12px;
+        text-overflow: ellipsis;
+        overflow: hidden;
+        white-space: nowrap;
+      }
+
+      .delete-button {
+        padding: 6px;
+        background: transparent;
+        border: none;
+        border-radius: 6px;
+        cursor: pointer;
+        margin-left: 12px;
+        transition: all 0.2s ease-out;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        width: 44px;
+        height: 44px;
+        opacity: 0;
+        transform: scale(0.8);
+      }
+
+      .link-item:hover .delete-button {
+        opacity: 1;
+        transform: scale(1);
+      }
+
+      .delete-button:hover {
+        background: transparent;
+        transform: scale(1.1) !important;
+      }
+
+      .delete-button:active {
+        transform: scale(0.95) !important;
+      }
+
+      .delete-button svg {
+        width: 20px;
+        height: 20px;
+        transition: all 0.2s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+      }
+
+      .delete-button:hover svg {
+        transform: scale(1.25);
+        stroke-width: 2;
+      }
+
+      @keyframes trashShake {
+        0%,
+        100% {
+          transform: rotate(0deg);
+        }
+        20% {
+          transform: rotate(-5deg);
+        }
+        40% {
+          transform: rotate(5deg);
+        }
+        60% {
+          transform: rotate(-3deg);
+        }
+        80% {
+          transform: rotate(3deg);
+        }
+      }
+
+      .delete-button.clicked svg {
+        animation: trashShake 0.4s ease-in-out;
+      }
+
+      .empty-state {
+        text-align: center;
+        padding: 32px 16px;
+        color: #6b7280;
+        font-size: 14px;
+      }
+    </style>
+  </head>
+  <body>
+    <header class="app-header">
+      <img src="./icons/icon.png" alt="Link Saver" class="app-logo" />
+      <h1 class="app-title">Link Saver</h1>
+      <div class="underline-animate" id="underlineAnimate"></div>
+    </header>
+
+    <div class="input-container">
+      <div class="input-group">
+        <label for="nameInput">Name</label>
+        <input type="text" id="nameInput" placeholder="Enter link name" />
+      </div>
+      <div class="input-group">
+        <label for="urlInput">URL</label>
+        <input type="text" id="urlInput" placeholder="https://example.com" />
+      </div>
+      <button class="save-button" id="saveButton">Save Link</button>
+    </div>
+
+    <div class="links-container" id="linksContainer"></div>
+
+    <script src="popup.js"></script>
+  </body>
+</html>
